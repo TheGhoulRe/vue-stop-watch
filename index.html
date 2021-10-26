@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stop Watch</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="lib/vue.dev.js"></script>
+  <script>
+    function TimeFormater(milliSecondsPerUnit) {
+      this.time = 0;
+      this.remainingTime = 0;
+    
+      this.getTime = time => {
+        this.time = Math.floor(time / milliSecondsPerUnit);
+        this.remainingTime = time % milliSecondsPerUnit;
+      };
+    }
+  </script>
+</head>
+<body>
+  <center>
+    <div id="app">
+      <svg width="180" height="40">
+        <text x="10" y="30" style="font-size: 30px;font-family: sans-serif; fill: url(#MyGradient)">StopWatch</text>
+      
+        <linearGradient id="MyGradient">
+          <stop offset="0" style="stop-color:orange"/>
+          <stop offset="1" style="stop-color:yellow"/>
+        </linearGradient>
+      </svg>
+
+      <div id="timers">
+        <svg width="210" height="24">
+          <clipPath id="myClip" transform="translate(4, 2)">
+            <polygon points="0, 20 10, 0 50, 0 40, 20" style="fill: none; stroke-width: 3"/>
+            <polygon points="50, 20 60, 0 100, 0 90, 20" style="fill: none; stroke-width: 3"/>
+            <polygon points="100, 20 110, 0 150, 0 140, 20" style="fill: none; stroke-width: 3"/>
+            <polygon points="150, 20 160, 0 200, 0 190, 20" style="fill: none; stroke-width: 3"/>
+          </clipPath>
+          
+        
+          <g style="stroke:none;clip-path:url(#myClip)">
+            <rect x="0" y="0" width="210" height="24" style="fill:url(#MyGradient)" />
+          </g>
+        
+          <g transform="scale(0.85),translate(9,4)">
+            <polygon points="0, 20 10, 0 50, 0 40, 20" style="fill: rgb(16, 10, 0); stroke-width: 3"/>
+          </g>
+          <g transform="scale(0.85),translate(18,4)">
+            <polygon points="50, 20 60, 0 100, 0 90, 20" style="fill: rgb(16, 10, 0); stroke-width: 3"/>
+          </g>
+          <g transform="scale(0.85),translate(27,4)">
+            <polygon points="100, 20 110, 0 150, 0 140, 20" style="fill: rgb(16, 10, 0); stroke-width: 3"/>
+          </g>
+          <g transform="scale(0.85),translate(36,4)">
+            <polygon points="150, 20 160, 0 200, 0 190, 20" style="fill: rgb(16, 10, 0); stroke-width: 3"/>
+          </g>
+          
+          <g transform="translate(2, 3)">
+            <text x="21" y="14" style="fill: white">{{ hours }}</text>
+            <text x="71" y="14" style="fill: white">{{ minutes }}</text>
+            <text x="121" y="14" style="fill: white">{{ seconds }}</text>
+            <text x="171" y="14" style="fill: white">{{ milliseconds }}</text>
+          </g>
+        
+        </svg>
+      </div><br />
+      <div class="buttons">
+        <button id="start" @click="startTimer">Start</button>
+        <button id="pause" @click="stopTimer" disabled="true">Pause</button>
+        <button id="reset" @click="resetTimer">Reset</button>
+        <button id="lap"   @click="addLap" disabled="true">Lap</button>
+      </div><br /><br /><br />
+      <div v-for="lap in laps" id="laps"><span>Lap {{ lap.id }}: </span><span>{{ lap.time }}</span></div>
+    </div>
+  </center>
+
+  <script>
+    let milliseconds = new TimeFormater(1);
+    let seconds = new TimeFormater(100);
+    let minutes = new TimeFormater(6000);
+    let hours = new TimeFormater(360000);
+
+    let data = {
+      time: 0,
+      milliseconds: 0,
+      seconds: 0,
+      minutes: 0,
+      hours: 0,
+      laps: [],
+    };
+
+    let timer = null;
+
+    new Vue({
+      el: '#app',
+      data,
+      methods: {
+        startTimer: function() {
+          document.getElementById("start").disabled = true;
+          document.getElementById("pause").disabled = false;
+          document.getElementById("lap").disabled = false;
+          document.getElementById("reset").disabled = true;
+
+          timer = setInterval(() => {
+            this.time++;
+
+            hours.getTime(this.time);
+            minutes.getTime(hours.remainingTime);
+            seconds.getTime(minutes.remainingTime);
+            milliseconds.getTime(seconds.remainingTime);
+
+            this.milliseconds = milliseconds.time;
+            this.seconds = seconds.time;
+            this.minutes = minutes.time;
+            this.hours = hours.time;
+          }, 10);
+        },
+        stopTimer: function () {
+          clearInterval(timer);
+          document.getElementById("start").disabled = false;
+          document.getElementById("reset").disabled = false;
+          document.getElementById("pause").disabled = true;
+        },
+        resetTimer: function () {
+          this.time = 0;
+          this.seconds = 0;
+          this.minutes = 0;
+          this.hours = 0;
+          this.milliseconds = 0;
+          this.laps = [];
+          document.getElementById("lap").disabled = true;
+        },
+        addLap: function () {
+          this.laps.push({ id: this.laps.length + 1, time: `${this.hours}:${this.minutes}:${this.seconds}:${this.milliseconds}` });
+        }
+      }
+    });
+  </script>
+</body>
+</html>
